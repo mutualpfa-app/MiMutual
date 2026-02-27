@@ -1,0 +1,129 @@
+/* ── Contenedor principal ────────────────────────────────────────────────── */
+.image-drop-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.image-drop-widget input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Zona de drop ────────────────────────────────────────────────────────── */
+.image-drop-zone {
+  position: relative;
+  border: 2px dashed #c8d0d8;
+  border-radius: 6px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #f9fafb;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+  overflow: hidden;
+  user-select: none;
+}
+
+.image-drop-zone:hover {
+  border-color: #447e9b;
+  background-color: #f0f6fa;
+}
+
+/* Estado: archivo siendo arrastrado encima */
+.image-drop-zone.is-dragging {
+  border-color: #417690;
+  background-color: #e8f3f8;
+}
+
+/* Estado: subiendo */
+.image-drop-zone.is-loading {
+  opacity: 0.55;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* ── Contenido interior ──────────────────────────────────────────────────── */
+.image-drop-zone__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.image-drop-zone__inner svg {
+  color: #b0bec5;
+  transition: color 0.18s ease;
+}
+
+.image-drop-zone:hover .image-drop-zone__inner svg,
+.image-drop-zone.is-dragging .image-drop-zone__inner svg {
+  color: #447e9b;
+}
+
+.image-drop-zone__inner p {
+  margin: 0;
+  font-size: 13px;
+  color: #546e7a;
+  font-weight: 500;
+}
+
+.image-drop-zone__inner small {
+  font-size: 11px;
+  color: #90a4ae;
+  font-weight: 400;
+}
+
+/* ── Overlay "Soltá para subir" ──────────────────────────────────────────── */
+.image-drop-zone__overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(65, 118, 144, 0.12);
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #417690;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.image-drop-zone.is-dragging .image-drop-zone__overlay {
+  display: flex;
+}
+
+/* ── Mensaje de estado ───────────────────────────────────────────────────── */
+.image-drop-status {
+  font-size: 12px;
+  min-height: 16px;
+  line-height: 1.4;
+}
+
+.image-drop-status.is-success {
+  color: #27ae60;
+}
+
+.image-drop-status.is-error {
+  color: #e74c3c;
+}
+
+.image-drop-status.is-loading {
+  color: #78909c;
+}
+
+/* ── Preview de imagen ───────────────────────────────────────────────────── */
+.image-drop-preview {
+  margin-top: 4px;
+  display: block;
+}
+
+.image-drop-preview img {
+  display: block;
+  max-width: 320px;
+  max-height: 200px;
+  border-radius: 5px;
+  border: 1px solid #dce3e8;
+  object-fit: cover;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}

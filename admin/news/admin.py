@@ -1,10 +1,19 @@
 # news/admin.py
 
+import os
+import uuid
+
+from django.conf import settings
 from django.contrib import admin
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.http import JsonResponse
+from django.urls import path
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.utils import timezone
-from .models import News, Category, NewsCategory
+from .forms import NewsAdminForm
+from .models import Category, News, NewsCategory
 
 
 # @admin.register(Category)
@@ -15,21 +24,72 @@ from .models import News, Category, NewsCategory
 #     ordering = ['display_order', 'name']
 
 
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
+    form = NewsAdminForm
+
     list_display = [
-        'title', 
-        'status_badge', 
-        'view_count', 
+        'title',
+        'status_badge',
+        'view_count',
         'published_at',
         'created_at',
         'is_deleted'
     ]
-    
+
     list_filter = ['status', 'created_at', 'published_at']
     search_fields = ['title', 'excerpt', 'content', 'slug']
-    
+
     readonly_fields = ['slug', 'view_count', 'created_by', 'updated_by', 'published_by', 'created_at', 'updated_at', 'deleted_at']
+
+    # ── Upload endpoint ───────────────────────────────────────────────────────
+    def get_urls(self):
+        """Registra el endpoint de upload de imágenes bajo la URL del admin."""
+        custom_urls = [
+            path(
+                "upload-image/",
+                self.admin_site.admin_view(self.upload_image_view),
+                name="news_news_upload_image",
+            ),
+        ]
+        return custom_urls + super().get_urls()
+
+    def upload_image_view(self, request):
+        """
+        POST /admin/news/news/upload-image/
+        Recibe un archivo de imagen, lo guarda en MEDIA_ROOT/news/images/
+        y devuelve JSON con la URL absoluta.
+        """
+        if request.method != "POST":
+            return JsonResponse({"error": "Método no permitido."}, status=405)
+
+        if "image" not in request.FILES:
+            return JsonResponse({"error": "No se recibió ninguna imagen."}, status=400)
+
+        file = request.FILES["image"]
+
+        if file.content_type not in ALLOWED_IMAGE_TYPES:
+            return JsonResponse(
+                {"error": "Tipo no permitido. Usá JPG, PNG, GIF o WebP."},
+                status=400,
+            )
+
+        if file.size > MAX_UPLOAD_SIZE:
+            return JsonResponse(
+                {"error": "La imagen supera el límite de 5MB."},
+                status=400,
+            )
+
+        ext = os.path.splitext(file.name)[1].lower() or ".jpg"
+        filename = f"news/images/{uuid.uuid4().hex}{ext}"
+        saved_path = default_storage.save(filename, ContentFile(file.read()))
+        url = request.build_absolute_uri(f"{settings.MEDIA_URL}{saved_path}")
+
+        return JsonResponse({"url": url})
 
     def get_fieldsets(self, request, obj=None):
         """Ocultar published_at al crear, mostrarlo al editar"""
