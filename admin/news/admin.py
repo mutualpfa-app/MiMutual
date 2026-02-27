@@ -87,7 +87,8 @@ class NewsAdmin(admin.ModelAdmin):
         ext = os.path.splitext(file.name)[1].lower() or ".jpg"
         filename = f"news/images/{uuid.uuid4().hex}{ext}"
         saved_path = default_storage.save(filename, ContentFile(file.read()))
-        url = f"/{settings.MEDIA_URL}{saved_path}"
+        media_path = f"/{settings.MEDIA_URL.lstrip('/')}{saved_path}"
+        url = request.build_absolute_uri(media_path)
 
         return JsonResponse({"url": url})
 
